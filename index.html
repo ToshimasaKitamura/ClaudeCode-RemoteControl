@@ -3,405 +3,302 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>加藤純一ファンサイト | うんこちゃんの世界</title>
+  <title>Taskmaster Pro - 最強のTODOアプリ</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Lightbox -->
-  <div id="lightbox" class="lightbox">
-    <button class="lightbox-close" aria-label="閉じる">&times;</button>
-    <div class="lightbox-body">
-      <div class="lightbox-icon"></div>
-      <h3 class="lightbox-title"></h3>
-      <p class="lightbox-desc"></p>
+  <!-- Notification Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Pomodoro Modal -->
+  <div id="pomodoro-modal" class="modal">
+    <div class="modal-content pomodoro-content">
+      <button class="modal-close" data-close-modal>&times;</button>
+      <h2>Pomodoro Timer</h2>
+      <div class="pomodoro-display">
+        <svg class="pomodoro-ring" viewBox="0 0 200 200">
+          <circle class="pomodoro-ring-bg" cx="100" cy="100" r="90" />
+          <circle id="pomodoro-progress" class="pomodoro-ring-fill" cx="100" cy="100" r="90" />
+        </svg>
+        <div class="pomodoro-time" id="pomodoro-time">25:00</div>
+      </div>
+      <div class="pomodoro-label" id="pomodoro-label">Focus Time</div>
+      <div class="pomodoro-sessions">
+        <span id="pomodoro-session-count">0</span> / 4 sessions
+      </div>
+      <div class="pomodoro-controls">
+        <button id="pomodoro-start" class="btn btn-primary">Start</button>
+        <button id="pomodoro-pause" class="btn btn-secondary" disabled>Pause</button>
+        <button id="pomodoro-reset" class="btn btn-ghost">Reset</button>
+      </div>
     </div>
   </div>
 
-  <!-- Back to Top -->
-  <button id="back-to-top" class="back-to-top" aria-label="トップに戻る">&uarr;</button>
+  <!-- Task Edit Modal -->
+  <div id="edit-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" data-close-modal>&times;</button>
+      <h2>Edit Task</h2>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id">
+        <div class="form-group">
+          <label>Task Name</label>
+          <input type="text" id="edit-title" class="input" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="edit-desc" class="input textarea" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="edit-priority" class="input">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="edit-category" class="input">
+              <option value="personal">Personal</option>
+              <option value="work">Work</option>
+              <option value="study">Study</option>
+              <option value="health">Health</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" id="edit-due" class="input">
+          </div>
+          <div class="form-group">
+            <label>Due Time</label>
+            <input type="time" id="edit-time" class="input">
+          </div>
+        </div>
+        <h3 class="subtask-heading">Subtasks</h3>
+        <div id="edit-subtasks" class="subtask-list"></div>
+        <div class="subtask-add-row">
+          <input type="text" id="edit-subtask-input" class="input" placeholder="Add subtask...">
+          <button type="button" id="edit-add-subtask" class="btn btn-ghost">+</button>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-ghost" data-close-modal>Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  <header class="hero">
-    <canvas id="hero-particles"></canvas>
-    <nav class="navbar">
-      <div class="nav-brand">かとじゅんFAN</div>
-      <div class="nav-right">
-        <button id="dark-toggle" class="dark-toggle" aria-label="ダークモード切り替え">🌙</button>
-        <button id="hamburger" class="hamburger" aria-label="メニュー">
-          <span></span><span></span><span></span>
+  <!-- Import/Export Modal -->
+  <div id="io-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" data-close-modal>&times;</button>
+      <h2>Import / Export</h2>
+      <div class="io-actions">
+        <button id="export-btn" class="btn btn-primary">Export JSON</button>
+        <button id="export-csv-btn" class="btn btn-secondary">Export CSV</button>
+      </div>
+      <div class="form-group" style="margin-top:20px;">
+        <label>Import JSON</label>
+        <input type="file" id="import-file" accept=".json" class="input">
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcuts-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" data-close-modal>&times;</button>
+      <h2>Keyboard Shortcuts</h2>
+      <div class="shortcuts-list">
+        <div class="shortcut-item"><kbd>N</kbd> <span>New task</span></div>
+        <div class="shortcut-item"><kbd>/</kbd> <span>Search</span></div>
+        <div class="shortcut-item"><kbd>D</kbd> <span>Toggle dark mode</span></div>
+        <div class="shortcut-item"><kbd>P</kbd> <span>Pomodoro timer</span></div>
+        <div class="shortcut-item"><kbd>1</kbd> <span>All tasks</span></div>
+        <div class="shortcut-item"><kbd>2</kbd> <span>Active tasks</span></div>
+        <div class="shortcut-item"><kbd>3</kbd> <span>Completed tasks</span></div>
+        <div class="shortcut-item"><kbd>?</kbd> <span>This help</span></div>
+        <div class="shortcut-item"><kbd>Esc</kbd> <span>Close modal</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo">Taskmaster<span>Pro</span></h1>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-filter="all">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+          All Tasks
+          <span class="badge" id="count-all">0</span>
+        </button>
+        <button class="nav-item" data-filter="active">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          Active
+          <span class="badge" id="count-active">0</span>
+        </button>
+        <button class="nav-item" data-filter="completed">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Completed
+          <span class="badge" id="count-completed">0</span>
+        </button>
+        <button class="nav-item" data-filter="overdue">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+          Overdue
+          <span class="badge badge-danger" id="count-overdue">0</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-section">
+        <h3 class="sidebar-label">Categories</h3>
+        <button class="nav-item" data-category="personal">
+          <span class="cat-dot" style="background:#6c5ce7"></span> Personal
+        </button>
+        <button class="nav-item" data-category="work">
+          <span class="cat-dot" style="background:#0984e3"></span> Work
+        </button>
+        <button class="nav-item" data-category="study">
+          <span class="cat-dot" style="background:#00b894"></span> Study
+        </button>
+        <button class="nav-item" data-category="health">
+          <span class="cat-dot" style="background:#e17055"></span> Health
+        </button>
+        <button class="nav-item" data-category="other">
+          <span class="cat-dot" style="background:#fdcb6e"></span> Other
         </button>
       </div>
-      <ul class="nav-links">
-        <li><a href="#about">プロフィール</a></li>
-        <li><a href="#history">経歴</a></li>
-        <li><a href="#content">コンテンツ</a></li>
-        <li><a href="#gallery">名場面</a></li>
-        <li><a href="#quotes">名言集</a></li>
-        <li><a href="#poll">投票</a></li>
-        <li><a href="#faq">FAQ</a></li>
-        <li><a href="#messageboard">掲示板</a></li>
-      </ul>
-    </nav>
-    <div class="hero-content">
-      <h1 class="reveal">加藤純一</h1>
-      <p class="hero-sub"><span id="typing-text"></span><span class="cursor">|</span></p>
-      <p class="hero-desc">日本のインターネット配信シーンを代表する実況者</p>
-      <a href="#about" class="hero-cta">もっと見る ↓</a>
-    </div>
-  </header>
 
-  <main>
-    <!-- Profile -->
-    <section id="about" class="section">
-      <div class="container">
-        <h2 class="section-title reveal">プロフィール</h2>
-        <div class="profile-grid reveal">
-          <div class="profile-icon">
-            <div class="avatar-placeholder">JUN</div>
-          </div>
-          <div class="profile-info">
-            <table class="profile-table">
-              <tr><th>名前</th><td>加藤純一（かとう じゅんいち）</td></tr>
-              <tr><th>愛称</th><td>うんこちゃん、かとじゅん、純</td></tr>
-              <tr><th>出身地</th><td>千葉県</td></tr>
-              <tr><th>生年月日</th><td>1985年8月17日</td></tr>
-              <tr><th>活動開始</th><td>2009年〜</td></tr>
-              <tr><th>主な活動</th><td>ゲーム実況、雑談配信、イベント主催</td></tr>
-              <tr><th>配信プラットフォーム</th><td>YouTube、ニコニコ動画、Twitch</td></tr>
-            </table>
-          </div>
-        </div>
+      <div class="sidebar-section">
+        <h3 class="sidebar-label">Tools</h3>
+        <button class="nav-item" id="open-pomodoro">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+          Pomodoro
+        </button>
+        <button class="nav-item" id="open-io">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Import/Export
+        </button>
+        <button class="nav-item" id="open-shortcuts">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>
+          Shortcuts
+        </button>
       </div>
-    </section>
 
-    <!-- History Timeline -->
-    <section id="history" class="section section-alt">
-      <div class="container">
-        <h2 class="section-title reveal">経歴・歩み</h2>
-        <div class="timeline">
-          <div class="timeline-item reveal">
-            <div class="timeline-year">2009</div>
-            <div class="timeline-content">
-              <h3>配信活動開始</h3>
-              <p>ニコニコ生放送にて「うんこちゃん」名義で配信を開始。独特のトーク力とリアクションで注目を集める。</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">2010-2014</div>
-            <div class="timeline-content">
-              <h3>ニコ生での人気確立</h3>
-              <p>ゲーム実況を中心に多彩なコンテンツを展開。コミュニティメンバーが急増し、ニコ生を代表する配信者の一人に。</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">2015-2018</div>
-            <div class="timeline-content">
-              <h3>活動の拡大</h3>
-              <p>YouTubeでの活動も本格化。様々なゲームタイトルの実況や大型企画を実施し、幅広いファン層を獲得。</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">2019-2021</div>
-            <div class="timeline-content">
-              <h3>さらなる飛躍</h3>
-              <p>大規模配信イベントの開催や他の配信者とのコラボレーションで話題に。同時接続数の記録を樹立。</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">2022</div>
-            <div class="timeline-content">
-              <h3>結婚</h3>
-              <p>結婚を発表し、大きな話題となる。配信での結婚報告には多くのファンが祝福を送った。</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">2023〜</div>
-            <div class="timeline-content">
-              <h3>現在も精力的に活動中</h3>
-              <p>変わらぬスタイルで配信を続け、新たなファンも獲得し続けている。</p>
-            </div>
-          </div>
-        </div>
+      <div class="sidebar-footer">
+        <button id="dark-toggle" class="dark-toggle-btn">
+          <svg class="icon icon-moon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+          <span>Dark Mode</span>
+        </button>
       </div>
-    </section>
+    </aside>
 
-    <!-- Content Cards -->
-    <section id="content" class="section">
-      <div class="container">
-        <h2 class="section-title reveal">人気コンテンツ</h2>
-        <div class="card-grid">
-          <div class="card reveal">
-            <div class="card-icon">🎮</div>
-            <h3>ゲーム実況</h3>
-            <p>ポケモン、マリオ、ダークソウル、APEXなど幅広いジャンルのゲーム実況。独自のプレイスタイルと実況が魅力。</p>
-          </div>
-          <div class="card reveal">
-            <div class="card-icon">🎤</div>
-            <h3>雑談配信</h3>
-            <p>日常の出来事や時事ネタについて語る雑談配信。飾らないトークスタイルがファンに人気。</p>
-          </div>
-          <div class="card reveal">
-            <div class="card-icon">🏆</div>
-            <h3>大型企画</h3>
-            <p>ポケモン全クリマラソン、24時間配信など、長時間にわたる大型企画は毎回大きな反響を呼ぶ。</p>
-          </div>
-          <div class="card reveal">
-            <div class="card-icon">👥</div>
-            <h3>コラボ配信</h3>
-            <p>他の人気配信者やYouTuberとのコラボレーション。化学反応が生まれる掛け合いが見どころ。</p>
-          </div>
-          <div class="card reveal">
-            <div class="card-icon">🎵</div>
-            <h3>歌配信</h3>
-            <p>時折行われる歌配信も人気コンテンツの一つ。独特の歌声でファンを楽しませる。</p>
-          </div>
-          <div class="card reveal">
-            <div class="card-icon">📺</div>
-            <h3>リアクション動画</h3>
-            <p>様々なコンテンツへのリアクションは、そのストレートな感想が視聴者に刺さる。</p>
-          </div>
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <button id="sidebar-toggle" class="sidebar-toggle">
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor"/></svg>
+        </button>
+        <div class="search-bar">
+          <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          <input type="text" id="search-input" placeholder="Search tasks... ( / )" class="search-input">
+          <button id="search-clear" class="search-clear" style="display:none">&times;</button>
         </div>
-      </div>
-    </section>
+        <div class="topbar-actions">
+          <select id="sort-select" class="sort-select">
+            <option value="created-desc">Newest first</option>
+            <option value="created-asc">Oldest first</option>
+            <option value="priority-desc">Priority (High first)</option>
+            <option value="priority-asc">Priority (Low first)</option>
+            <option value="due-asc">Due date (Earliest)</option>
+            <option value="due-desc">Due date (Latest)</option>
+            <option value="alpha-asc">A-Z</option>
+            <option value="alpha-desc">Z-A</option>
+          </select>
+        </div>
+      </header>
 
-    <!-- Gallery -->
-    <section id="gallery" class="section section-alt">
-      <div class="container">
-        <h2 class="section-title reveal">名場面ギャラリー</h2>
-        <p class="section-desc reveal">クリックして詳細を見る</p>
-        <div class="gallery-grid">
-          <div class="gallery-item reveal" data-title="ポケモン全クリマラソン" data-desc="全世代のポケモンを連続でクリアする壮大な企画。数日間にわたる配信に多くのファンが釘付けになった伝説の配信。途中で見せる感情の起伏が視聴者の心を掴んだ。">
-            <div class="gallery-icon">🏃</div>
-            <div class="gallery-label">ポケモン全クリマラソン</div>
+      <!-- Stats Bar -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-done">0</div>
+          <div class="stat-label">Done</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-streak">0</div>
+          <div class="stat-label">Streak</div>
+        </div>
+        <div class="stat-card stat-card-progress">
+          <div class="progress-ring-container">
+            <svg class="progress-ring" viewBox="0 0 80 80">
+              <circle class="progress-ring-bg" cx="40" cy="40" r="34"/>
+              <circle id="progress-ring-fill" class="progress-ring-fill" cx="40" cy="40" r="34"/>
+            </svg>
+            <div class="progress-ring-text" id="stat-percent">0%</div>
           </div>
-          <div class="gallery-item reveal" data-title="24時間耐久配信" data-desc="丸一日を超える耐久配信。深夜のテンションと朝方の限界状態がファンの間で語り継がれる名場面を数多く生み出した。">
-            <div class="gallery-icon">⏰</div>
-            <div class="gallery-label">24時間耐久配信</div>
-          </div>
-          <div class="gallery-item reveal" data-title="ダークソウル名シーン" data-desc="高難易度ゲーム「ダークソウル」シリーズでの激闘。何度倒されても諦めない姿勢と、ボス撃破時の絶叫は名場面として有名。">
-            <div class="gallery-icon">⚔️</div>
-            <div class="gallery-label">ダークソウル激闘</div>
-          </div>
-          <div class="gallery-item reveal" data-title="結婚発表配信" data-desc="2022年、配信上で結婚を報告。数万人の同時視聴者が祝福コメントで埋め尽くし、トレンド入りも果たした感動の瞬間。">
-            <div class="gallery-icon">💒</div>
-            <div class="gallery-label">結婚発表</div>
-          </div>
-          <div class="gallery-item reveal" data-title="大物コラボ配信" data-desc="人気配信者やYouTuberとの豪華コラボ。普段とは異なる化学反応が生まれ、両方のファンが盛り上がった記念すべき配信。">
-            <div class="gallery-icon">🤝</div>
-            <div class="gallery-label">大物コラボ</div>
-          </div>
-          <div class="gallery-item reveal" data-title="同時接続数記録" data-desc="日本の個人配信者として驚異的な同時接続数を記録。インターネット配信の歴史に名を刻んだ瞬間。">
-            <div class="gallery-icon">📊</div>
-            <div class="gallery-label">同接記録樹立</div>
-          </div>
+          <div class="stat-label">Progress</div>
         </div>
       </div>
-    </section>
 
-    <!-- Quotes -->
-    <section id="quotes" class="section">
-      <div class="container">
-        <h2 class="section-title reveal">名言・名場面</h2>
-        <div class="quotes-grid">
-          <blockquote class="quote-card reveal">
-            <p>「人生はゲームと一緒。楽しんだもん勝ち。」</p>
-          </blockquote>
-          <blockquote class="quote-card reveal">
-            <p>「俺は俺のやり方でやる。それがダメなら仕方ない。」</p>
-          </blockquote>
-          <blockquote class="quote-card reveal">
-            <p>「面白いことが正義。」</p>
-          </blockquote>
-          <blockquote class="quote-card reveal">
-            <p>「配信は生き物。何が起こるかわからないから面白い。」</p>
-          </blockquote>
-          <blockquote class="quote-card reveal">
-            <p>「誰かに認められなくても、自分が面白いと思えばそれでいい。」</p>
-          </blockquote>
-          <blockquote class="quote-card reveal">
-            <p>「全力でやって負けたなら、それはもうしょうがない。」</p>
-          </blockquote>
+      <!-- Quick Add -->
+      <form id="add-form" class="add-form">
+        <div class="add-form-main">
+          <input type="text" id="add-input" class="add-input" placeholder="What needs to be done?" required>
+          <button type="submit" class="btn btn-primary add-btn">Add Task</button>
         </div>
-      </div>
-    </section>
+        <div class="add-form-options">
+          <select id="add-priority" class="mini-select">
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+            <option value="high">High</option>
+          </select>
+          <select id="add-category" class="mini-select">
+            <option value="personal">Personal</option>
+            <option value="work">Work</option>
+            <option value="study">Study</option>
+            <option value="health">Health</option>
+            <option value="other">Other</option>
+          </select>
+          <input type="date" id="add-due" class="mini-input">
+        </div>
+      </form>
 
-    <!-- Stats -->
-    <section id="stats" class="section section-alt">
-      <div class="container">
-        <h2 class="section-title reveal">数字で見る加藤純一</h2>
-        <div class="stats-grid">
-          <div class="stat-item reveal">
-            <div class="stat-number" data-count="15" data-suffix="年+">0</div>
-            <div class="stat-label">配信活動歴</div>
-          </div>
-          <div class="stat-item reveal">
-            <div class="stat-number" data-count="3000000" data-suffix="+">0</div>
-            <div class="stat-label">YouTube登録者</div>
-          </div>
-          <div class="stat-item reveal">
-            <div class="stat-number" data-count="100000" data-suffix="+">0</div>
-            <div class="stat-label">同時接続最大数</div>
-          </div>
-          <div class="stat-item reveal">
-            <div class="stat-number" data-count="5000" data-suffix="+">0</div>
-            <div class="stat-label">配信回数</div>
-          </div>
-        </div>
-      </div>
-    </section>
+      <!-- Task List -->
+      <div id="task-list" class="task-list"></div>
 
-    <!-- Fan Poll -->
-    <section id="poll" class="section">
-      <div class="container">
-        <h2 class="section-title reveal">ファン投票</h2>
-        <p class="section-desc reveal">一番好きなコンテンツに投票しよう！</p>
-        <div class="poll-container reveal">
-          <div class="poll-option" data-key="game">
-            <span class="poll-label">🎮 ゲーム実況</span>
-            <div class="poll-bar"><div class="poll-bar-fill" data-key="game"></div></div>
-            <span class="poll-pct"></span>
-          </div>
-          <div class="poll-option" data-key="talk">
-            <span class="poll-label">🎤 雑談配信</span>
-            <div class="poll-bar"><div class="poll-bar-fill" data-key="talk"></div></div>
-            <span class="poll-pct"></span>
-          </div>
-          <div class="poll-option" data-key="event">
-            <span class="poll-label">🏆 大型企画</span>
-            <div class="poll-bar"><div class="poll-bar-fill" data-key="event"></div></div>
-            <span class="poll-pct"></span>
-          </div>
-          <div class="poll-option" data-key="collab">
-            <span class="poll-label">👥 コラボ配信</span>
-            <div class="poll-bar"><div class="poll-bar-fill" data-key="collab"></div></div>
-            <span class="poll-pct"></span>
-          </div>
-          <div class="poll-option" data-key="song">
-            <span class="poll-label">🎵 歌配信</span>
-            <div class="poll-bar"><div class="poll-bar-fill" data-key="song"></div></div>
-            <span class="poll-pct"></span>
-          </div>
-        </div>
-        <div id="poll-results"></div>
-        <p id="poll-thanks" class="poll-thanks">投票ありがとうございます！</p>
+      <!-- Empty State -->
+      <div id="empty-state" class="empty-state" style="display:none">
+        <svg viewBox="0 0 200 200" width="120" height="120">
+          <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+          <path d="M70 100l20 20 40-40" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+        </svg>
+        <h3>No tasks yet</h3>
+        <p>Add your first task above to get started!</p>
       </div>
-    </section>
 
-    <!-- FAQ -->
-    <section id="faq" class="section section-alt">
-      <div class="container">
-        <h2 class="section-title reveal">よくある質問</h2>
-        <div class="faq-list">
-          <div class="faq-item reveal">
-            <button class="faq-question">加藤純一とは誰ですか？<span class="faq-arrow">▼</span></button>
-            <div class="faq-answer">
-              <p>加藤純一（かとう じゅんいち）は、日本を代表するゲーム実況者・配信者です。2009年からニコニコ生放送で「うんこちゃん」名義で活動を開始し、現在はYouTubeやTwitchなど複数のプラットフォームで配信を行っています。飾らないトークスタイルと圧倒的なエンターテインメント性が特徴です。</p>
-            </div>
-          </div>
-          <div class="faq-item reveal">
-            <button class="faq-question">「衛門」とは何ですか？<span class="faq-arrow">▼</span></button>
-            <div class="faq-answer">
-              <p>「衛門（えもん）」とは、加藤純一のファンの総称です。日本のネット配信文化において最大規模のファンコミュニティの一つで、独自のスラングや文化が発達しています。配信をリアルタイムで盛り上げ、切り抜き動画やファンアートの制作など活発な活動を行っています。</p>
-            </div>
-          </div>
-          <div class="faq-item reveal">
-            <button class="faq-question">配信はどこで見られますか？<span class="faq-arrow">▼</span></button>
-            <div class="faq-answer">
-              <p>加藤純一の配信は主にYouTube、ニコニコ動画、Twitchで視聴できます。配信スケジュールは不定期ですが、各プラットフォームのチャンネルをフォロー・登録しておくと通知を受け取ることができます。過去の配信アーカイブも多数公開されています。</p>
-            </div>
-          </div>
-          <div class="faq-item reveal">
-            <button class="faq-question">人気の配信シリーズは？<span class="faq-arrow">▼</span></button>
-            <div class="faq-answer">
-              <p>特に人気が高いのは、ポケモンシリーズの実況（全世代クリアマラソンなど）、ダークソウルシリーズの攻略、APEX Legendsなどの対戦ゲーム、そして24時間耐久配信などの大型企画です。雑談配信も根強い人気があり、日常の出来事を面白おかしく語るスタイルが支持されています。</p>
-            </div>
-          </div>
-          <div class="faq-item reveal">
-            <button class="faq-question">このサイトは公式ですか？<span class="faq-arrow">▼</span></button>
-            <div class="faq-answer">
-              <p>いいえ、このサイトはファンが作成した非公式のファンサイトです。加藤純一氏本人やその関係者とは一切関係がありません。掲載されている情報はファンの視点から収集・編集されたものです。</p>
-            </div>
-          </div>
-        </div>
+      <!-- Bulk Actions -->
+      <div id="bulk-bar" class="bulk-bar" style="display:none">
+        <span id="bulk-count">0 selected</span>
+        <button class="btn btn-ghost" id="bulk-complete">Complete</button>
+        <button class="btn btn-danger" id="bulk-delete">Delete</button>
+        <button class="btn btn-ghost" id="bulk-cancel">Cancel</button>
       </div>
-    </section>
-
-    <!-- Community -->
-    <section id="community" class="section">
-      <div class="container">
-        <h2 class="section-title reveal">コミュニティ</h2>
-        <div class="community-content">
-          <p class="community-text reveal">
-            加藤純一のファンコミュニティは「衛門（えもん）」と呼ばれ、
-            日本のインターネット配信文化において最も大きく活発なコミュニティの一つです。
-            配信を一緒に楽しみ、盛り上げるファンの存在が加藤純一の配信をより特別なものにしています。
-          </p>
-          <div class="community-features">
-            <div class="community-item reveal">
-              <h3>🔥 衛門文化</h3>
-              <p>独自のスラングや文化が発達し、コミュニティ内で共有される楽しさがある。</p>
-            </div>
-            <div class="community-item reveal">
-              <h3>💬 リアルタイムの一体感</h3>
-              <p>生配信でのコメント参加により、配信者と視聴者が一体となる空間が生まれる。</p>
-            </div>
-            <div class="community-item reveal">
-              <h3>🎨 ファンアート・二次創作</h3>
-              <p>配信の名場面をもとにしたファンアートや切り抜き動画も盛んに制作されている。</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Message Board -->
-    <section id="messageboard" class="section section-alt">
-      <div class="container">
-        <h2 class="section-title reveal">ファン掲示板</h2>
-        <p class="section-desc reveal">推しへの想いを書き込もう！（ブラウザに保存されます）</p>
-        <form id="msg-form" class="msg-form reveal">
-          <div class="msg-form-row">
-            <input type="text" id="msg-name" class="msg-input-name" placeholder="名前（省略可）" maxlength="20">
-            <input type="text" id="msg-input" class="msg-input-text" placeholder="メッセージを入力..." maxlength="200" required>
-            <button type="submit" class="msg-submit">送信</button>
-          </div>
-        </form>
-        <div id="msg-list" class="msg-list reveal"></div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-section">
-          <h4>かとじゅんFAN</h4>
-          <p>加藤純一の非公式ファンサイト。ファンが作り、ファンが楽しむ場所。</p>
-        </div>
-        <div class="footer-section">
-          <h4>サイトマップ</h4>
-          <ul>
-            <li><a href="#about">プロフィール</a></li>
-            <li><a href="#history">経歴</a></li>
-            <li><a href="#content">コンテンツ</a></li>
-            <li><a href="#gallery">名場面</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h4>もっと見る</h4>
-          <ul>
-            <li><a href="#quotes">名言集</a></li>
-            <li><a href="#poll">投票</a></li>
-            <li><a href="#faq">FAQ</a></li>
-            <li><a href="#messageboard">掲示板</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>このサイトは非公式のファンサイトです。加藤純一氏本人とは一切関係ありません。</p>
-        <p class="footer-note">Made with ❤ by ファン</p>
-      </div>
-    </div>
-  </footer>
+    </main>
+  </div>
 
   <script src="script.js"></script>
 </body>
