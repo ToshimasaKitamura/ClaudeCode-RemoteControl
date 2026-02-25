@@ -3,7 +3,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
   // State
   // ========================================
-  let tasks = JSON.parse(localStorage.getItem("tm_tasks") || "[]");
+  let tasks = JSON.parse(localStorage.getItem("tm_tasks") || "[]").map(t => ({
+    ...t,
+    subtasks: Array.isArray(t.subtasks) ? t.subtasks : []
+  }));
   let currentFilter = "all";
   let currentCategory = null;
   let currentSort = localStorage.getItem("tm_sort") || "created-desc";
@@ -193,8 +196,9 @@ document.addEventListener("DOMContentLoaded", () => {
       emptyStateEl.style.display = "none";
       taskListEl.innerHTML = filtered.map(task => {
         const isOverdue = !task.done && task.due && new Date(task.due) < now;
-        const subtasksDone = task.subtasks ? task.subtasks.filter(s => s.done).length : 0;
-        const subtasksTotal = task.subtasks ? task.subtasks.length : 0;
+        const subs = Array.isArray(task.subtasks) ? task.subtasks : [];
+        const subtasksDone = subs.filter(s => s.done).length;
+        const subtasksTotal = subs.length;
         const subtaskPct = subtasksTotal > 0 ? Math.round((subtasksDone / subtasksTotal) * 100) : 0;
 
         return `
@@ -211,15 +215,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="task-tag tag-priority-${task.priority}">${capitalize(task.priority)}</span>
                 <span class="task-tag tag-category" style="background:${CATEGORY_COLORS[task.category]}22;color:${CATEGORY_COLORS[task.category]}">${capitalize(task.category)}</span>
                 ${task.due ? `<span class="task-tag ${isOverdue ? 'tag-overdue' : 'tag-due'}">${formatDate(task.due)}${task.dueTime ? ' ' + task.dueTime : ''}</span>` : ''}
+                ${subtasksTotal > 0 ? `<span class="task-tag tag-subtask-count">${subtasksDone}/${subtasksTotal} subtasks</span>` : ''}
               </div>
               ${subtasksTotal > 0 ? `
-                <div class="task-subtasks">
-                  ${task.subtasks.map((s, i) => `
-                    <div class="subtask-row">
-                      <input type="checkbox" class="subtask-check" data-task-id="${task.id}" data-index="${i}" ${s.done ? 'checked' : ''}>
-                      <span class="subtask-text ${s.done ? 'done' : ''}">${escapeHTML(s.text)}</span>
-                    </div>
-                  `).join('')}
+                <div class="task-subtasks" data-task-id="${task.id}">
+                  <button type="button" class="subtask-toggle" data-task-id="${task.id}">
+                    <span class="subtask-toggle-arrow" style="transform:rotate(90deg)">&#9654;</span> Hide subtasks (${subtasksDone}/${subtasksTotal})
+                  </button>
+                  <div class="subtask-items" data-task-id="${task.id}">
+                    ${subs.map((s, i) => `
+                      <div class="subtask-row">
+                        <input type="checkbox" class="subtask-check" data-task-id="${task.id}" data-index="${i}" ${s.done ? 'checked' : ''}>
+                        <span class="subtask-text ${s.done ? 'done' : ''}">${escapeHTML(s.text)}</span>
+                      </div>
+                    `).join('')}
+                  </div>
                   <div class="subtask-progress">
                     <div class="subtask-progress-fill" style="width:${subtaskPct}%"></div>
                   </div>
@@ -264,13 +274,28 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
+    // Subtask toggle (default: open, click to close)
+    taskListEl.querySelectorAll(".subtask-toggle").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const taskId = btn.dataset.taskId;
+        const itemsEl = taskListEl.querySelector(`.subtask-items[data-task-id="${taskId}"]`);
+        if (itemsEl) {
+          const isClosed = itemsEl.classList.toggle("closed");
+          const countText = btn.textContent.match(/\([\d/]+ subtasks\)/);
+          const countLabel = countText ? countText[0] : '';
+          btn.innerHTML = `<span class="subtask-toggle-arrow" style="transform:${isClosed ? 'rotate(0deg)' : 'rotate(90deg)'}">&#9654;</span> ${isClosed ? 'Show' : 'Hide'} subtasks ${countLabel}`;
+        }
+      });
+    });
+
     // Subtask check
     taskListEl.querySelectorAll(".subtask-check").forEach(cb => {
       cb.addEventListener("change", () => {
         const taskId = Number(cb.dataset.taskId);
         const index = Number(cb.dataset.index);
         const task = tasks.find(t => t.id === taskId);
-        if (task && task.subtasks[index] !== undefined) {
+        if (task && task.subtasks && task.subtasks[index] !== undefined) {
           task.subtasks[index].done = cb.checked;
           save();
           render();

@@ -707,6 +707,45 @@ body {
   padding-left: 4px;
 }
 
+.subtask-toggle {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--transition);
+}
+
+.subtask-toggle:hover {
+  color: var(--accent-light);
+}
+
+.subtask-toggle-arrow {
+  font-size: 0.6rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.subtask-items {
+  display: block;
+  padding-top: 6px;
+}
+
+.subtask-items.closed {
+  display: none;
+}
+
+.tag-subtask-count {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
 .subtask-row {
   display: flex;
   align-items: center;
