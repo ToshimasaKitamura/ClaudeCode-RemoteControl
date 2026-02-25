@@ -217,24 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${task.due ? `<span class="task-tag ${isOverdue ? 'tag-overdue' : 'tag-due'}">${formatDate(task.due)}${task.dueTime ? ' ' + task.dueTime : ''}</span>` : ''}
                 ${subtasksTotal > 0 ? `<span class="task-tag tag-subtask-count">${subtasksDone}/${subtasksTotal} subtasks</span>` : ''}
               </div>
-              ${subtasksTotal > 0 ? `
-                <div class="task-subtasks" data-task-id="${task.id}">
-                  <button type="button" class="subtask-toggle" data-task-id="${task.id}">
-                    <span class="subtask-toggle-arrow" style="transform:rotate(90deg)">&#9654;</span> Hide subtasks (${subtasksDone}/${subtasksTotal})
-                  </button>
-                  <div class="subtask-items" data-task-id="${task.id}">
-                    ${subs.map((s, i) => `
-                      <div class="subtask-row">
-                        <input type="checkbox" class="subtask-check" data-task-id="${task.id}" data-index="${i}" ${s.done ? 'checked' : ''}>
-                        <span class="subtask-text ${s.done ? 'done' : ''}">${escapeHTML(s.text)}</span>
-                      </div>
-                    `).join('')}
-                  </div>
-                  <div class="subtask-progress">
-                    <div class="subtask-progress-fill" style="width:${subtaskPct}%"></div>
-                  </div>
-                </div>
-              ` : ''}
+              ${subtasksTotal > 0 ? '<div class="task-subtasks">' + subs.map(function(s, i) { return '<div class="subtask-row"><input type="checkbox" class="subtask-check" data-task-id="' + task.id + '" data-index="' + i + '"' + (s.done ? ' checked' : '') + '><span class="subtask-text' + (s.done ? ' done' : '') + '">' + escapeHTML(s.text) + '</span></div>'; }).join('') + '<div class="subtask-progress"><div class="subtask-progress-fill" style="width:' + subtaskPct + '%"></div></div></div>' : ''}
             </div>
             <div class="task-actions">
               <button class="task-action-btn edit" data-id="${task.id}" title="Edit">
@@ -270,21 +253,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           save();
           render();
-        }
-      });
-    });
-
-    // Subtask toggle (default: open, click to close)
-    taskListEl.querySelectorAll(".subtask-toggle").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const taskId = btn.dataset.taskId;
-        const itemsEl = taskListEl.querySelector(`.subtask-items[data-task-id="${taskId}"]`);
-        if (itemsEl) {
-          const isClosed = itemsEl.classList.toggle("closed");
-          const countText = btn.textContent.match(/\([\d/]+ subtasks\)/);
-          const countLabel = countText ? countText[0] : '';
-          btn.innerHTML = `<span class="subtask-toggle-arrow" style="transform:${isClosed ? 'rotate(0deg)' : 'rotate(90deg)'}">&#9654;</span> ${isClosed ? 'Show' : 'Hide'} subtasks ${countLabel}`;
         }
       });
     });
